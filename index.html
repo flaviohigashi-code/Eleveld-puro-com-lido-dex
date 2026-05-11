@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Higashi Matrix v9.0 - Turbo Edition</title>
+    <style>
+        :root { --bg: #0d1117; --card: #161b22; --blue: #58a6ff; --green: #39d353; --yellow: #fbbf24; --border: #30363d; --purple: #bc8cff; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: #c9d1d9; padding: 5px; margin: 0; display: flex; justify-content: center; }
+        .container { background: var(--card); padding: 15px; border-radius: 16px; border: 1px solid var(--border); width: 100%; max-width: 480px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+        h2 { color: var(--blue); text-align: center; font-size: 1.1em; margin: 10px 0; text-transform: uppercase; letter-spacing: 2px; }
+        .config-header { font-size: 9px; color: var(--blue); text-align: center; margin-bottom: 12px; background: rgba(88, 166, 255, 0.1); padding: 6px; border-radius: 6px; border: 1px inset var(--border); }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        label { display: block; font-size: 9px; color: #8b949e; margin-bottom: 4px; font-weight: bold; text-transform: uppercase; }
+        input, select { width: 100%; padding: 10px; background: #0d1117; border: 1px solid var(--border); color: #fff; border-radius: 8px; font-size: 15px; text-align: center; box-sizing: border-box; }
+        select { text-align-last: center; }
+        .adjuvantes-toggle { background: #1c2128; padding: 10px; border-radius: 10px; border: 1px solid var(--purple); margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+        .adjuvantes-toggle span { font-size: 11px; font-weight: bold; color: var(--purple); }
+        .table-container { background: #000; border-radius: 12px; border: 1px solid var(--green); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 10px; min-width: 380px; }
+        th { background: #21262d; color: var(--blue); padding: 8px; border-bottom: 1px solid var(--border); }
+        td { padding: 10px 4px; border-bottom: 1px solid #161b22; text-align: center; vertical-align: middle; }
+        .time-col { font-weight: bold; color: var(--yellow); border-right: 1px solid #161b22; }
+        .val-main { color: var(--green); font-weight: bold; font-size: 1.3em; display: block; }
+        .val-sub { color: #8b949e; font-size: 9px; display: block; margin-top: 2px; }
+        .footer { text-align: center; margin-top: 15px; color: var(--green); font-weight: 900; font-size: 1.4em; letter-spacing: 3px; text-shadow: 0 0 8px rgba(57, 211, 83, 0.4); }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Higashi Matrix v9.0</h2>
+    <div class="config-header">ELEVELD ALL-IN-ONE | PROPO 1% | REMI 40µg/ml</div>
+    
+    <div class="input-grid">
+        <div><label>Peso (kg)</label><input type="number" id="peso" value="70" oninput="calc()"></div>
+        <div><label>Idade (anos)</label><input type="number" id="idade" value="45" oninput="calc()"></div>
+        <div><label>Sexo</label><select id="sexo" onchange="calc()"><option value="M">Masc</option><option value="F">Fem</option></select></div>
+    </div>
+
+    <div class="adjuvantes-toggle">
+        <span>ESTRATÉGIA ADJUVANTE (LIDO/DEX)</span>
+        <select id="adj" onchange="calc()" style="width: 120px; border-color: var(--purple);">
+            <option value="N">SEM</option>
+            <option value="S">COM</option>
+        </select>
+    </div>
+
+    <div class="input-grid" style="grid-template-columns: 1fr 1fr;">
+        <div><label>Alvo Ce Prop</label><input type="number" id="ceP" value="2.5" step="0.1" oninput="calc()"></div>
+        <div><label>Alvo Ce Remi</label><input type="number" id="ceR" value="3.0" step="0.1" oninput="calc()"></div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tempo</th>
+                    <th>PROPOFOL 1%</th>
+                    <th>REMI 40µg/ml</th>
+                </tr>
+            </thead>
+            <tbody id="corpo-tabela"></tbody>
+        </table>
+    </div>
+    
+    <div class="footer">EXCELENTE!</div>
+</div>
+
+<script>
+function calc() {
+    const p = parseFloat(document.getElementById('peso').value);
+    const i = parseFloat(document.getElementById('idade').value);
+    const s = document.getElementById('sexo').value;
+    const adj = document.getElementById('adj').value;
+    let cp = parseFloat(document.getElementById('ceP').value);
+    let cr = parseFloat(document.getElementById('ceR').value);
+    
+    if (!p || !i || !cp || !cr) return;
+
+    // Efeito poupador de Adjuvantes (Redução de ~15-20% nos alvos se 'S')
+    if (adj === 'S') {
+        cp = cp * 0.85;
+        cr = cr * 0.80;
+    }
+
+    let alo = Math.pow(p / 70, 0.75);
+    let fI = i > 45 ? Math.exp(-0.005 * (i - 45)) : 1.0;
+    let mSexo = (s === 'F') ? 0.95 : 1.0;
+
+    const corpo = document.getElementById('corpo-tabela');
+    corpo.innerHTML = "";
+
+    const tempos = [0, 15, 30, 60, 90, 120, 180];
+
+    tempos.forEach(t => {
+        let decP = Math.max(0.6, Math.exp(-0.003 * t)); 
+        let decR = Math.max(0.8, Math.exp(-0.001 * t)); 
+
+        // Cálculo ml/h
+        let mlhP = (cp * 22 * fI * mSexo * 70 * alo * 60 * decP) / 10000;
+        let mlhR = (cr * 0.045 * fI * 70 * alo * 60 * decR) / 40;
+
+        // Cálculo Doses Manuais
+        let mkhP = (mlhP * 10) / p; // mg/kg/h
+        let mkmR = (mlhR * 40) / 60 / p; // mcg/kg/min
+
+        let row = `<tr>
+            <td class="time-col">${t === 0 ? 'Início' : t + ' min'}</td>
+            <td>
+                <span class="val-main">${mlhP.toFixed(1)} <small style="font-size:8px">ml/h</small></span>
+                <span class="val-sub">${mkhP.toFixed(1)} mg/kg/h</span>
+            </td>
+            <td>
+                <span class="val-main">${mlhR.toFixed(1)} <small style="font-size:8px">ml/h</small></span>
+                <span class="val-sub">${mkmR.toFixed(2)} µg/kg/min</span>
+            </td>
+        </tr>`;
+        corpo.innerHTML += row;
+    });
+}
+calc();
+</script>
+</body>
+</html>
